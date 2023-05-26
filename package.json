@@ -1,20 +1,29 @@
 {
   "name": "babylonjs-mmd-loader",
   "private": true,
+  "main": "",
   "version": "0.0.0",
   "type": "module",
+  "files": [
+    "dist/lib"
+  ],
+  "exports": {
+    ".": {
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lib:build": "vite build --config vite.lib.config.js",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.5.0",
-    "@babylonjs/inspector": "^6.5.0",
-    "mmd-parser": "^1.0.4",
-    "vue": "^3.2.47"
+    "mmd-parser": "^1.0.4"
   },
   "devDependencies": {
+    "vue": "^3.2.47",
+    "@babylonjs/core": "^6.5.0",
+    "@babylonjs/inspector": "^6.5.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "typescript": "^5.0.2",
     "vite": "^4.3.2",
