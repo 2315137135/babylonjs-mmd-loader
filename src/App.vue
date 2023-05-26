@@ -11,28 +11,26 @@ import {Engine, MeshBuilder, Scene, Tools, VertexData} from "@babylonjs/core";
 import "@babylonjs/inspector"
 import {MMDParser} from "mmd-parser"
 
-type Tuple<TItem, TLength extends number> = [TItem, ...TItem[]] & { length: TLength };
-
-type Vec2 = [number, number]
-type Vec3 = [number, number, number]
-
-interface MMDVertex {
-  edgeFlag: number
-  position: Vec3
-  normal: Vec3
-  uv: Vec2
-  skinIndices: []
-  skinWeights: []
-}
-
-interface MMDData {
-  vertices: MMDVertex []
-  faces: { indices: Vec3 }[]
-  boneFrameNames: { name: string }[]
-  boneFrames: { boneIndex: number, frameIndex: number }[]
-}
-
 declare namespace MMDParser {
+  type Vec2 = [number, number]
+  type Vec3 = [number, number, number]
+
+  interface MMDVertex {
+    edgeFlag: number
+    position: Vec3
+    normal: Vec3
+    uv: Vec2
+    skinIndices: []
+    skinWeights: []
+  }
+
+  interface MMDData {
+    vertices: MMDVertex []
+    faces: { indices: Vec3 }[]
+    boneFrameNames: { name: string }[]
+    boneFrames: { boneIndex: number, frameIndex: number }[]
+  }
+
   class Parser {
     parsePmd(data: ArrayBuffer | string): MMDData
   }
