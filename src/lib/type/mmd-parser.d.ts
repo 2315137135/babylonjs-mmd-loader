@@ -41,6 +41,8 @@ declare module "mmd-parser" {
 
     export class Parser {
         parsePmd(data: ArrayBuffer | string): MMDData
+
+        parseVmd(data: ArrayBuffer | string)
     }
 
     export declare var MMDParser = {

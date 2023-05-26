@@ -4,7 +4,8 @@ import {
     Color3,
     Matrix,
     Mesh,
-    MultiMaterial, Quaternion,
+    MultiMaterial,
+    Quaternion,
     Scene,
     Skeleton,
     Space,
@@ -15,7 +16,6 @@ import {
     Vector3,
     VertexData
 } from "@babylonjs/core";
-import {Debug} from "@babylonjs/core/Legacy/legacy";
 
 const parser = new MMDParser.Parser()
 
@@ -119,16 +119,11 @@ function parsSkeleton(pmd: MMDData, scene: Scene) {
         if (boneData.parentIndex > -1) {
             parent = skeleton.bones[boneData.parentIndex]
         }
-        let m = Matrix.Compose(Vector3.One(), Quaternion.Identity(), Vector3.FromArray(boneData.position))
-        let bone = new Bone(boneData.name, skeleton, undefined, m)
-        bone.setParent(parent, false)
-        bone.setScale(Vector3.One())
-        bone.setRotation(Vector3.Zero())
-        bone.setPosition(Vector3.FromArray(boneData.position), Space.BONE)
-
+        let position = Vector3.FromArray(boneData.position)
+        let m = Matrix.Compose(Vector3.One(), Quaternion.Identity(), position.subtract(parent?.position || Vector3.Zero()))
+        let bone = new Bone(boneData.name, skeleton, parent, m)
+        bone.setPosition(position, Space.LOCAL)
     }
-    skeleton.setCurrentPoseAsRest()
     skeleton.returnToRest()
-    // skeleton.setCurrentPoseAsRest()
     return skeleton
 }

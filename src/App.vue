@@ -9,6 +9,7 @@ import {onMounted, onUnmounted} from "vue";
 import {Color3, DirectionalLight, Engine, MeshBuilder, Scene, Tools, Vector3} from "@babylonjs/core";
 import "@babylonjs/inspector"
 import {ImportMMDMeshAsync, parseMaterial, parseMesh} from "./lib/mmd-loader.ts";
+import {MMDParser} from "mmd-parser";
 
 async function createScene(scene: Scene) {
   scene.debugLayer.show({embedMode: true}).then()
@@ -20,6 +21,8 @@ async function createScene(scene: Scene) {
 
   let mesh = await ImportMMDMeshAsync("/mmd", "/miku_v2.pmd", scene)
 
+  let data = await Tools.LoadFileAsync("/vmd/wavefile_v2.vmd", true)
+  console.log(new MMDParser.Parser().parseVmd(data));
 
   scene.createDefaultCamera(true, true, true)
 }
