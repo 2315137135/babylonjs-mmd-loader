@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@babylonjs/core': ^6.5.0
+  '@babylonjs/inspector': ^6.5.0
   '@vitejs/plugin-vue': ^4.1.0
   mmd-parser: ^1.0.4
   typescript: ^5.0.2
@@ -12,6 +13,7 @@ specifiers:
 
 dependencies:
   '@babylonjs/core': 6.5.0
+  '@babylonjs/inspector': 6.5.0_6bkhew5mkogxwllmvczkeqb2di
   mmd-parser: 1.0.4
   vue: 3.3.4
 
@@ -49,6 +51,81 @@ packages:
 
   /@babylonjs/core/6.5.0:
     resolution: {integrity: sha512-JfecUPoCNrP9vOFzhENZhDJ2PgXs+wViVJtOfrxNZwbS+BZ15z2UkWKnAGQsBwZPn0D/ty8ZxzTCPQbJAsRT/A==}
+    dev: false
+
+  /@babylonjs/gui-editor/6.5.0_flteigqgwgn4sdsz4bzli6hl7e:
+    resolution: {integrity: sha512-up7jkbiOyjhbj9NVgcdeDqVZQPOOWWQ98iGzINW1Lz3YNUW8vidybAOxQGY5j02hsHAWoW+CcLmsa/zzhY+Kow==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+      '@babylonjs/gui': ^6.0.0
+      '@types/react': '>=16.7.3'
+      '@types/react-dom': '>=16.0.9'
+    dependencies:
+      '@babylonjs/core': 6.5.0
+      '@babylonjs/gui': 6.5.0_@babylonjs+core@6.5.0
+      '@types/react': 18.2.7
+      '@types/react-dom': 18.2.4
+    dev: false
+
+  /@babylonjs/gui/6.5.0_@babylonjs+core@6.5.0:
+    resolution: {integrity: sha512-yQPf1wGurq4Wd2Afp3tquLUCE4PXdi6B2SoxZSticM/CYaGltNMiM9nZSPUsHyRnNLr3qN5d9SSzKEx0zo7LqQ==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+    dependencies:
+      '@babylonjs/core': 6.5.0
+    dev: false
+
+  /@babylonjs/inspector/6.5.0_6bkhew5mkogxwllmvczkeqb2di:
+    resolution: {integrity: sha512-EDe5mV1kElbfBg05Ob/3AeRJWnLoZOlpSlGBsUbytENJ80xe5VFtXW+CfVBPi44MAdGClWi5xuKnVyzAciKTuQ==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+      '@babylonjs/gui': ^6.0.0
+      '@babylonjs/gui-editor': ^6.0.0
+      '@babylonjs/loaders': ^6.0.0
+      '@babylonjs/materials': ^6.0.0
+      '@babylonjs/serializers': ^6.0.0
+      '@types/react': '>=16.7.3'
+      '@types/react-dom': '>=16.0.9'
+    dependencies:
+      '@babylonjs/core': 6.5.0
+      '@babylonjs/gui': 6.5.0_@babylonjs+core@6.5.0
+      '@babylonjs/gui-editor': 6.5.0_flteigqgwgn4sdsz4bzli6hl7e
+      '@babylonjs/loaders': 6.5.0_gp2dlgojdfe2vfkghsqz7ixe54
+      '@babylonjs/materials': 6.5.0_@babylonjs+core@6.5.0
+      '@babylonjs/serializers': 6.5.0_gp2dlgojdfe2vfkghsqz7ixe54
+      '@fortawesome/fontawesome-svg-core': 6.4.0
+      '@fortawesome/free-regular-svg-icons': 6.4.0
+      '@fortawesome/free-solid-svg-icons': 6.4.0
+      '@types/react': 18.2.7
+      '@types/react-dom': 18.2.4
+    dev: false
+
+  /@babylonjs/loaders/6.5.0_gp2dlgojdfe2vfkghsqz7ixe54:
+    resolution: {integrity: sha512-aY0EQUa6VwtUVhvO5fAuSFz2ZGHUkJtPjIZxAHw60vPxMCYi2uAlMZ1aS8WWsnj+RyEJ7EJj4joWArcVjNpzMg==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+      babylonjs-gltf2interface: ^6.0.0
+    dependencies:
+      '@babylonjs/core': 6.5.0
+      babylonjs-gltf2interface: 6.5.0
+    dev: false
+
+  /@babylonjs/materials/6.5.0_@babylonjs+core@6.5.0:
+    resolution: {integrity: sha512-Gp1KPnS6aQzYGrFB10wWKzZmoITO4gGpuvmZ82lZSQbGwb2QDrRojRSk2LHG6lR1lznf3fSiKERmUi1F37DOrA==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+    dependencies:
+      '@babylonjs/core': 6.5.0
+    dev: false
+
+  /@babylonjs/serializers/6.5.0_gp2dlgojdfe2vfkghsqz7ixe54:
+    resolution: {integrity: sha512-NSvv2tIuAxhw3FmxyXqpJROeBWbmnNLTuWdsYp/MqgUTbAc7yzXKVlXAnCc56LxeCoDCNN4W1nPhEATUGTxnaA==}
+    peerDependencies:
+      '@babylonjs/core': ^6.0.0
+      babylonjs-gltf2interface: ^6.0.0
+    dependencies:
+      '@babylonjs/core': 6.5.0
+      babylonjs-gltf2interface: 6.5.0
     dev: false
 
   /@esbuild/android-arm/0.17.19:
@@ -249,6 +326,36 @@ packages:
     dev: true
     optional: true
 
+  /@fortawesome/fontawesome-common-types/6.4.0:
+    resolution: {integrity: sha512-HNii132xfomg5QVZw0HwXXpN22s7VBHQBv9CeOu9tfJnhsWQNd2lmTNi8CSrnw5B+5YOmzu1UoPAyxaXsJ6RgQ==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dev: false
+
+  /@fortawesome/fontawesome-svg-core/6.4.0:
+    resolution: {integrity: sha512-Bertv8xOiVELz5raB2FlXDPKt+m94MQ3JgDfsVbrqNpLU9+UE2E18GKjLKw+d3XbeYPqg1pzyQKGsrzbw+pPaw==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dependencies:
+      '@fortawesome/fontawesome-common-types': 6.4.0
+    dev: false
+
+  /@fortawesome/free-regular-svg-icons/6.4.0:
+    resolution: {integrity: sha512-ZfycI7D0KWPZtf7wtMFnQxs8qjBXArRzczABuMQqecA/nXohquJ5J/RCR77PmY5qGWkxAZDxpnUFVXKwtY/jPw==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dependencies:
+      '@fortawesome/fontawesome-common-types': 6.4.0
+    dev: false
+
+  /@fortawesome/free-solid-svg-icons/6.4.0:
+    resolution: {integrity: sha512-kutPeRGWm8V5dltFP1zGjQOEAzaLZj4StdQhWVZnfGFCvAPVvHh8qk5bRrU4KXnRRRNni5tKQI9PBAdI6MP8nQ==}
+    engines: {node: '>=6'}
+    requiresBuild: true
+    dependencies:
+      '@fortawesome/fontawesome-common-types': 6.4.0
+    dev: false
+
   /@jridgewell/sourcemap-codec/1.4.15:
     resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}
 
@@ -379,6 +486,28 @@ packages:
   /@types/estree/1.0.1:
     resolution: {integrity: sha512-LG4opVs2ANWZ1TJoKc937iMmNstM/d0ae1vNbnBvBhqCSezgVUOzcLCqbI5elV8Vy6WKwKjaqR+zO9VKirBBCA==}
     dev: true
+
+  /@types/prop-types/15.7.5:
+    resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
+    dev: false
+
+  /@types/react-dom/18.2.4:
+    resolution: {integrity: sha512-G2mHoTMTL4yoydITgOGwWdWMVd8sNgyEP85xVmMKAPUBwQWm9wBPQUmvbeF4V3WBY1P7mmL4BkjQ0SqUpf1snw==}
+    dependencies:
+      '@types/react': 18.2.7
+    dev: false
+
+  /@types/react/18.2.7:
+    resolution: {integrity: sha512-ojrXpSH2XFCmHm7Jy3q44nXDyN54+EYKP2lBhJ2bqfyPj6cIUW/FZW/Csdia34NQgq7KYcAlHi5184m4X88+yw==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.3
+      csstype: 3.1.2
+    dev: false
+
+  /@types/scheduler/0.16.3:
+    resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
+    dev: false
 
   /@vitejs/plugin-vue/4.2.3_vite@4.3.8+vue@3.3.4:
     resolution: {integrity: sha512-R6JDUfiZbJA9cMiguQ7jxALsgiprjBeHL5ikpXfJCH62pPHtI+JdJ5xWj6Ev73yXSlYl86+blXn1kZHQ7uElxw==}
@@ -523,6 +652,10 @@ packages:
     dependencies:
       sprintf-js: 1.0.3
     dev: true
+
+  /babylonjs-gltf2interface/6.5.0:
+    resolution: {integrity: sha512-nnWl2HHEfSNM75E3AmpF9wbnFtAfW0Bgu7DlgIZhDd8b7Xts446xg40jisc+7GRlLcVIdjLeV1cTfssjnC8+UA==}
+    dev: false
 
   /balanced-match/1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}

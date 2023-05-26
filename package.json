@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^6.5.0",
+    "@babylonjs/inspector": "^6.5.0",
     "mmd-parser": "^1.0.4",
     "vue": "^3.2.47"
   },
