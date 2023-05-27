@@ -23,33 +23,45 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     let fineUrl = `${rootUrl}/${url}`
     fineUrl = fineUrl.replace(/\/+/, "/")
     let rawData = await Tools.LoadFileAsync(fineUrl, true)
-    let pmd = parser.parsePmd(rawData)
-    console.log(pmd)
-    let mmdMesh = await parseMesh(pmd, scene)
-    let mat = parseMaterial(pmd, scene, rootUrl)
-    let skeleton = parsSkeleton(pmd, scene)
+
+    let mmdData
+    if (url.includes(".pmd")) {
+        mmdData = parser.parsePmd(rawData)
+    } else {
+        mmdData = parser.parsePmx(rawData)
+    }
+    console.log(mmdData)
+    let textures = parseTextures(mmdData, scene, rootUrl)
+    let mmdMesh = await parseMesh(mmdData, scene)
+    let mat = parseMaterial(mmdData, scene, rootUrl, textures)
+    let skeleton = parsSkeleton(mmdData, scene)
 
     mmdMesh.skeleton = skeleton
     mmdMesh.material = mat
     return mmdMesh
 }
 
-export function parseMaterial(pmd: MMDData, scene: Scene, rootUrl: string) {
+export function parseMaterial(pmd: MMDData, scene: Scene, rootUrl: string, textures: Texture[]) {
     let multiMat = new MultiMaterial("")
     pmd.materials.forEach((e, index) => {
         let mat = new StandardMaterial(`mmd_${index}`, scene)
         mat.ambientColor = Color3.FromArray(e.ambient)
         mat.diffuseColor = Color3.FromArray(e.diffuse)
+        mat.alpha = e.diffuse[3] ?? 1
         mat.specularColor = Color3.FromArray(e.specular)
         //https://computergraphics.stackexchange.com/questions/1515/what-is-the-accepted-method-of-converting-shininess-to-roughness-and-vice-versa
         mat.roughness = Math.pow(0.25 * e.shininess, 0.2)
+        if (e.textureIndex && e.textureIndex > -1) {
+            console.log(e.textureIndex)
+            mat.diffuseTexture = textures[e.textureIndex]
+        }
         if (e.fileName) {
             let fineUrl = `${rootUrl}/${e.fileName}`
             fineUrl = fineUrl.replace(/\/+/, "/")
             mat.diffuseTexture = new Texture(fineUrl, scene)
         }
 
-        mat.sideOrientation = 0
+        mat.sideOrientation = 1
         mat.backFaceCulling = false
         multiMat.subMaterials.push(mat)
     })
@@ -126,4 +138,18 @@ function parsSkeleton(pmd: MMDData, scene: Scene) {
     }
     skeleton.returnToRest()
     return skeleton
+}
+
+function parseTextures(pmd: MMDData, scene: Scene, rootUrl: string) {
+    let textures: Texture[] = []
+    if (!pmd.textures) return []
+    pmd.textures.forEach(e => {
+        let fineUrl = `${rootUrl}/${e}`
+        fineUrl = fineUrl.replace(/[\/+]/, "/")
+        fineUrl = fineUrl.replace(/[\\+]/, "/")
+        let tex = new Texture(fineUrl, scene, false, false)
+        console.log(fineUrl)
+        textures.push(tex)
+    })
+    return textures
 }

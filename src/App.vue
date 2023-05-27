@@ -9,7 +9,6 @@ import {onMounted, onUnmounted} from "vue";
 import {Color3, DirectionalLight, Engine, MeshBuilder, Scene, Tools, Vector3} from "@babylonjs/core";
 import "@babylonjs/inspector"
 import {ImportMMDMeshAsync, parseMaterial, parseMesh} from "./lib/mmd-loader.ts";
-import {MMDParser} from "mmd-parser";
 
 async function createScene(scene: Scene) {
   scene.debugLayer.show({embedMode: true}).then()
@@ -19,10 +18,11 @@ async function createScene(scene: Scene) {
   let sun = new DirectionalLight("sun", Vector3.FromArray([-1, -2.5, 1.2]), scene)
   sun.intensity = 1.5
 
-  let mesh = await ImportMMDMeshAsync("/mmd", "/miku_v2.pmd", scene)
+  let mesh = await ImportMMDMeshAsync("/pmx/yyb", "/yyb.pmx", scene)
+  // let mesh = await ImportMMDMeshAsync("/mmd", "/miku_v2.pmd", scene)
 
-  let data = await Tools.LoadFileAsync("/vmd/wavefile_v2.vmd", true)
-  console.log(new MMDParser.Parser().parseVmd(data));
+  // let data = await Tools.LoadFileAsync("/pmx/yyb/yyb.pmx", true)
+  // console.log(new MMDParser.Parser().parsePmx(data));
 
   scene.createDefaultCamera(true, true, true)
 }

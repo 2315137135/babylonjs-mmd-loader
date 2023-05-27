@@ -17,7 +17,8 @@ declare module "mmd-parser" {
         diffuse: Vec4
         edgeFlag: number
         faceCount: number
-        fileName: string
+        fileName?: string
+        textureIndex?: number
         shininess: 5
         specular: Vec3
     }
@@ -25,6 +26,7 @@ declare module "mmd-parser" {
     export interface MMDData {
         vertices: MMDVertex []
         faces: { indices: Vec3 }[]
+        textures?: string[]
         bones: {
             ikIndex: number
             name: string
@@ -41,6 +43,8 @@ declare module "mmd-parser" {
 
     export class Parser {
         parsePmd(data: ArrayBuffer | string): MMDData
+
+        parsePmx(data: ArrayBuffer | string): MMDData
 
         parseVmd(data: ArrayBuffer | string)
     }
