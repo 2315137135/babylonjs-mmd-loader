@@ -1,7 +1,7 @@
 declare module "mmd-parser" {
-    export type Vec2 = [number, number]
-    export type Vec3 = [number, number, number]
-    export type Vec4 = [number, number, number, number]
+    type Vec2 = [number, number]
+    type Vec3 = [number, number, number]
+    type Vec4 = [number, number, number, number]
 
     export interface MMDVertex {
         edgeFlag: number
@@ -12,7 +12,9 @@ declare module "mmd-parser" {
         skinWeights: []
     }
 
+
     export interface MMDMaterial {
+        name: string
         ambient: Vec3
         diffuse: Vec4
         edgeFlag: number
@@ -23,7 +25,17 @@ declare module "mmd-parser" {
         specular: Vec3
     }
 
-    export interface MMDData {
+    type MMDMorph = { frameNum: number, morphName: string, weight: number }
+    type MMDMotion = { boneName: string, frameNum: number, interpolation: number[], position: Vec3, rotation: Vec4 }
+
+    export interface MMDAnimationData {
+        metadata: Record<string, string | number>
+        morphs: MMDMorph []
+        motions: MMDMotion []
+    }
+
+    export interface MMDModelData {
+        metadata: Record<string, string | number>
         vertices: MMDVertex []
         faces: { indices: Vec3 }[]
         textures?: string[]
@@ -35,18 +47,15 @@ declare module "mmd-parser" {
             tailIndex: number
             type: number
         }[]
-        boneFrameNames: { name: string }[]
-        boneFrames: { boneIndex: number, frameIndex: number }[]
         materials: MMDMaterial[]
-
     }
 
     export class Parser {
-        parsePmd(data: ArrayBuffer | string): MMDData
+        parsePmd(data: ArrayBuffer | string): MMDModelData
 
-        parsePmx(data: ArrayBuffer | string): MMDData
+        parsePmx(data: ArrayBuffer | string): MMDModelData
 
-        parseVmd(data: ArrayBuffer | string)
+        parseVmd(data: ArrayBuffer | string): MMDAnimationData
     }
 
     export declare var MMDParser = {
