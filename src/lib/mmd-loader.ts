@@ -270,6 +270,7 @@ function applyAnimationToSkeleton(skeleton: Skeleton, boneAnimations: MMDBoneAni
         let boneAnimation = boneAnimations[i]
         let boneIndex = skeleton.getBoneIndexByName(boneAnimation.boneName)
         let bone = skeleton.bones[boneIndex]
+        if (!bone) continue
         boneAnimation.positionAnimation.getKeys().map(e => (e.value as Vector3).addInPlace(bone.position))
         animationGroup.addTargetedAnimation(boneAnimation.positionAnimation, bone)
         animationGroup.addTargetedAnimation(boneAnimation.rotationAnimation, bone)
