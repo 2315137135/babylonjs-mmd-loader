@@ -15,14 +15,14 @@ async function createScene(scene: Scene) {
   scene.clearColor = Color3.White().scale(0.7).toColor4()
   scene.ambientColor = Color3.FromHexString("#F3D5DF")
   scene.imageProcessingConfiguration.toneMappingEnabled = true
-  let sun = new DirectionalLight("sun", Vector3.FromArray([-1, -2.5, 2]), scene)
+  let sun = new DirectionalLight("sun", Vector3.FromArray([-1, -2.5, 5]), scene)
   sun.intensity = 1.5
   let camera = new ArcRotateCamera("", -1.57, 1.5, 30, Vector3.Up().scale(15), scene)
   camera.attachControl()
 
   //https://www.aplaybox.com/details/model/tNkGgxoWN4Ql
   // let mesh = await ImportMMDMeshAsync("/pmx/yyb", "/yyb.pmx", scene)
-  let mesh = await ImportMMDMeshAsync("/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
+  let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
   await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh)
 
 }

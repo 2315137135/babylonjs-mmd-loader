@@ -25,17 +25,32 @@ declare module "mmd-parser" {
         specular: Vec3
     }
 
-    type MMDMorph = { frameNum: number, morphName: string, weight: number }
-    type MMDMotion = { boneName: string, frameNum: number, interpolation: number[], position: Vec3, rotation: Vec4 }
+    type MMDMorphAnimationData = { frameNum: number, morphName: string, weight: number }
+    type MMDMotionAnimationData = {
+        boneName: string,
+        frameNum: number,
+        interpolation: number[],
+        position: Vec3,
+        rotation: Vec4
+    }
+    type MMDMorphData = {
+        elementCount: number,
+        elements: { index: number, position: Vec3 }[],
+        englishName: string,
+        name: string,
+        panel: number
+        type: number
+    }
 
     export interface MMDAnimationData {
         metadata: Record<string, string | number>
-        morphs: MMDMorph []
-        motions: MMDMotion []
+        morphs: MMDMorphAnimationData []
+        motions: MMDMotionAnimationData []
     }
 
     export interface MMDModelData {
         metadata: Record<string, string | number>
+        morphs: MMDMorphData[]
         vertices: MMDVertex []
         faces: { indices: Vec3 }[]
         textures?: string[]

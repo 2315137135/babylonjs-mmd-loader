@@ -1,4 +1,4 @@
-import {MMDAnimationData, MMDModelData, MMDMotion, MMDParser} from "mmd-parser";
+import {MMDAnimationData, MMDModelData, MMDMorphAnimationData, MMDMotionAnimationData, MMDParser} from "mmd-parser";
 import {
     Animation,
     AnimationGroup,
@@ -7,6 +7,8 @@ import {
     IAnimationKey,
     Matrix,
     Mesh,
+    MorphTarget,
+    MorphTargetManager,
     MultiMaterial,
     Quaternion,
     Scene,
@@ -19,13 +21,12 @@ import {
     Vector3,
     VertexData
 } from "@babylonjs/core";
-import {EasingFunction, IEasingFunction} from "@babylonjs/core/Animations/easing";
 
 const parser = new MMDParser.Parser()
 
 export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Scene) {
+
     let fineUrl = `${rootUrl}/${url}`
-    fineUrl = fineUrl.replace(/\/+/, "/")
     let rawData = await Tools.LoadFileAsync(fineUrl, true)
 
     let mmdData
@@ -43,6 +44,10 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     mmdMesh.skeleton = skeleton
     mmdMesh.material = mat
     mmdMesh.metadata = mmdData.metadata
+
+    mmdMesh.onMeshReadyObservable.add(e => {
+        scene.addMesh(mmdMesh)
+    })
     return mmdMesh
 }
 
@@ -60,12 +65,10 @@ export function parseMaterial(pmd: MMDModelData, scene: Scene, rootUrl: string, 
             mat.diffuseTexture = textures[e.textureIndex]
         }
         if (e.fileName) {
-            let fineUrl = `${rootUrl}/${e.fileName}`
-            fineUrl = fineUrl.replace(/\/+/, "/")
+            let fineUrl = `${rootUrl}${e.fileName}`
             mat.diffuseTexture = new Texture(fineUrl, scene)
         }
-
-        mat.sideOrientation = 1
+        mat.sideOrientation = 0
         mat.backFaceCulling = false
         multiMat.subMaterials.push(mat)
     })
@@ -82,8 +85,33 @@ function parseSubMesh(pmd: MMDModelData, mmdMesh: Mesh) {
     })
 }
 
+function parseMorph(pmd: MMDModelData, mmdMesh: Mesh) {
+    let scene = mmdMesh._scene
+    let morphTargetManager = mmdMesh.morphTargetManager = mmdMesh.morphTargetManager ?? new MorphTargetManager(scene)
+    pmd.morphs.forEach(morphData => {
+        let positions = [...mmdMesh.getVerticesData("position") ?? []]
+        if (positions.length <= 0) throw Error("The mesh has no position vertex data")
+
+        let morphTarget = new MorphTarget(morphData.name, 0, scene)
+        if (morphData.type === 1) {
+            for (let i = 0; i < morphData.elements.length; i++) {
+                let element = morphData.elements[i]
+                positions[element.index * 3 + 0] += element.position[0]
+                positions[element.index * 3 + 1] += element.position[1]
+                positions[element.index * 3 + 2] += element.position[2]
+            }
+            morphTarget.setPositions(positions)
+        } else if (morphData.type === 2) {
+            // 不知道干嘛的, 预留
+        }
+        morphTargetManager.addTarget(morphTarget)
+    })
+
+}
+
 export function parseMesh(pmd: MMDModelData, scene: Scene) {
-    let mmdMesh = new Mesh("mmd", scene)
+    let mmdMesh = new Mesh(pmd.metadata?.modelName.toString() || "mmd", scene)
+
     let positions = []
     let indices = []
     let normals = []
@@ -108,13 +136,8 @@ export function parseMesh(pmd: MMDModelData, scene: Scene) {
     }
     for (let i = 0; i < pmd.faces.length; i++) {
         let f = pmd.faces[i].indices
-        let temp = f[0]
-        f[0] = f[1]
-        f[1] = temp
         indices.push(...f)
     }
-
-
     let vertexData = new VertexData()
     vertexData.positions = positions
     vertexData.indices = indices
@@ -123,7 +146,10 @@ export function parseMesh(pmd: MMDModelData, scene: Scene) {
     vertexData.matricesWeights = skinWeights
     vertexData.matricesIndices = skinIndices
     vertexData.applyToMesh(mmdMesh, true)
+    parseMorph(pmd, mmdMesh)
     parseSubMesh(pmd, mmdMesh)
+    scene.removeMesh(mmdMesh)
+    mmdMesh.onMeshReadyObservable.addOnce(e => scene.addMesh(e))
     return mmdMesh
 }
 
@@ -153,10 +179,7 @@ function parseTextures(pmd: MMDModelData, scene: Scene, rootUrl: string) {
     if (!pmd.textures) return []
     pmd.textures.forEach(e => {
         let fineUrl = `${rootUrl}/${e}`
-        fineUrl = fineUrl.replace(/[\/+]/, "/")
-        fineUrl = fineUrl.replace(/[\\+]/, "/")
         let tex = new Texture(fineUrl, scene, false, false)
-        console.log(fineUrl)
         textures.push(tex)
     })
     return textures
@@ -166,75 +189,38 @@ function parseTextures(pmd: MMDModelData, scene: Scene, rootUrl: string) {
 export async function loadVmdAnimationAsync(url: string, mmdMesh: Mesh) {
     let raw = await Tools.LoadFileAsync(url, true)
     let vmd = parser.parseVmd(raw)
-    console.log(vmd)
     let animations = parseAnimation(vmd)
-    applyAnimationToSkeleton(mmdMesh.skeleton!, animations)
-}
-
-
-class MMDEase extends EasingFunction implements IEasingFunction {
-
+    applyAnimationToSkeleton(mmdMesh, animations)
 }
 
 
 type MMDBoneAnimation = { boneName: string, positionAnimation: Animation, rotationAnimation: Animation }
-type MMDMorphAnimation = { morphName: string, }
+type MMDMorphAnimation = { morphName: string, morphAnimation: Animation }
+type MMDAnimations = { boneAnimations: MMDBoneAnimation[], morphAnimations: MMDMorphAnimation[] }
 
-function parseAnimation(vmd: MMDAnimationData) {
-    let motionsMap = new Map<string, MMDMotion[]>()
-    let morphsMap = new Map<string, Animation>()
+
+function parseAnimation(vmd: MMDAnimationData): MMDAnimations {
+    let motionsMap = new Map<string, MMDMotionAnimationData[]>()
+    let morphsMap = new Map<string, MMDMorphAnimationData[]>()
     vmd.motions.forEach(e => {
         motionsMap.set(e.boneName, motionsMap.get(e.boneName) || [])
         motionsMap.get(e.boneName)!.push(e)
     })
+    vmd.morphs.forEach(e => {
+        morphsMap.set(e.morphName, morphsMap.get(e.morphName) || [])
+        morphsMap.get(e.morphName)!.push(e)
+    })
 
     let boneAnimations: MMDBoneAnimation[] = []
+    let morphAnimations: MMDMorphAnimation[] = []
+    let rate = 30
+
     motionsMap.forEach((value, boneName /*boneName*/) => {
         value.sort((a, b) => a.frameNum - b.frameNum) // 排序保证遍历时按帧顺序来
-        let rate = 30
         let positionKeys: IAnimationKey[] = []
         let rotationKeys: IAnimationKey[] = []
         for (let i = 0; i < value.length; i++) {
-            const last = value[i - 1] || null
             const current = value[i]
-            const next = value[i + 1] || null
-            let positionInTangent
-            let positionOutTangent
-            let rotationInTangent
-            let rotationOutTangent
-
-            let getHermite = function (index: number, interpolation: number[]) {
-                let x1 = interpolation[index + 0] / 127
-                let x2 = interpolation[index + 8] / 127
-                let y1 = interpolation[index + 4] / 127
-                let y2 = interpolation[index + 12] / 127
-                // return bezierToHermite(x1, y1, x2, y2)
-                return [(1 - y2) / (1 - x2), y1 / x1]
-            }
-
-
-            let [inT1, outT1] = getHermite(0, current.interpolation)
-            let [inT2, outT2] = getHermite(1, current.interpolation)
-            let [inT3, outT3] = getHermite(2, current.interpolation)
-            let [inT4, outT4] = getHermite(3, current.interpolation)
-            positionInTangent = Vector3.FromArray([inT1, inT2, inT3])
-            positionOutTangent = Vector3.FromArray([outT1, outT2, outT3])
-            rotationInTangent = Quaternion.FromArray([inT4, inT4, inT4, inT4])
-            rotationOutTangent = Quaternion.FromArray([outT4, outT4, outT4, outT4])
-            // babylonjs 的切线斜率是计算帧数量的, 而mmd的切线斜率计算是两关键帧之间标准化 0 到 1的
-            if (last) {
-                let scale = 1 / (current.frameNum - last.frameNum)
-                positionInTangent.scaleInPlace(scale)
-                rotationInTangent.scaleInPlace(scale)
-                console.log(positionInTangent, current.frameNum - last.frameNum)
-
-            }
-            if (next) {
-                let scale = 1 / (next.frameNum - current.frameNum)
-                positionOutTangent.scaleInPlace(scale)
-                rotationOutTangent.scaleInPlace(scale)
-            }
-
             positionKeys.push({
                 frame: current.frameNum,
                 value: Vector3.FromArray(current.position),
@@ -249,32 +235,62 @@ function parseAnimation(vmd: MMDAnimationData) {
         let rotationAnimation = new Animation(`${boneName}.rotationQuaternion`, "rotationQuaternion", rate, Animation.ANIMATIONTYPE_QUATERNION)
         positionAnimation.setKeys(positionKeys)
         rotationAnimation.setKeys(rotationKeys)
-
         boneAnimations.push({
             boneName,
             positionAnimation,
             rotationAnimation
         })
-
     })
-    console.log("boneAnimations: ", boneAnimations)
-    console.log(motionsMap)
-    return boneAnimations
+
+    morphsMap.forEach((e, morphName) => {
+        e.sort((a, b) => a.frameNum - b.frameNum)
+        let morphKeys: IAnimationKey[] = []
+        for (let i = 0; i < e.length; i++) {
+            const current = e[i]
+            morphKeys.push({
+                frame: current.frameNum,
+                value: current.weight,
+            })
+        }
+        let morphAnimation = new Animation(morphName, "influence", rate, Animation.ANIMATIONTYPE_FLOAT)
+        morphAnimation.setKeys(morphKeys)
+        morphAnimations.push({
+            morphName,
+            morphAnimation
+        })
+    })
+    return {boneAnimations, morphAnimations}
 }
 
 
-function applyAnimationToSkeleton(skeleton: Skeleton, boneAnimations: MMDBoneAnimation[]) {
-    if (!skeleton) return
-    let animationGroup = new AnimationGroup(skeleton.name, skeleton.getScene())
-    for (let i = 0; i < boneAnimations.length; i++) {
-        let boneAnimation = boneAnimations[i]
-        let boneIndex = skeleton.getBoneIndexByName(boneAnimation.boneName)
-        let bone = skeleton.bones[boneIndex]
-        if (!bone) continue
-        boneAnimation.positionAnimation.getKeys().map(e => (e.value as Vector3).addInPlace(bone.position))
-        animationGroup.addTargetedAnimation(boneAnimation.positionAnimation, bone)
-        animationGroup.addTargetedAnimation(boneAnimation.rotationAnimation, bone)
+function applyAnimationToSkeleton(mesh: Mesh, {boneAnimations, morphAnimations}: MMDAnimations,) {
+    let {skeleton, morphTargetManager} = mesh
+    let animationGroup = new AnimationGroup(mesh.name + "_mmd", mesh.getScene())
 
+    if (skeleton) {
+        for (let i = 0; i < boneAnimations.length; i++) {
+            const boneAnimation = boneAnimations[i];
+            let boneIndex = skeleton.getBoneIndexByName(boneAnimation.boneName)
+            let bone = skeleton.bones[boneIndex]
+            if (!bone) continue;
+            boneAnimation.positionAnimation.getKeys().map(e => (e.value as Vector3).addInPlace(bone.position))
+            animationGroup.addTargetedAnimation(boneAnimation.positionAnimation, bone)
+            animationGroup.addTargetedAnimation(boneAnimation.rotationAnimation, bone)
+        }
     }
-    animationGroup.play()
+    if (morphTargetManager) {
+        let morphTargets = []
+        for (let i = 0; i < morphTargetManager.numTargets; i++) {
+            morphTargets.push(morphTargetManager.getTarget(i))
+        }
+        for (let i = 0; i < morphAnimations.length; i++) {
+            let morphAnime = morphAnimations[i]
+            let name = morphAnime.morphName
+            let animation = morphAnime.morphAnimation
+            let morphTarget = morphTargets.find(e => e.name === name)
+            if (!morphTarget) continue;
+            animationGroup.addTargetedAnimation(animation, morphTarget)
+        }
+    }
+    animationGroup.play(true)
 }
