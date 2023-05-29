@@ -19,19 +19,20 @@ Of course the final package will not be associated with vue, it will just be use
 
 ### Basic
 
--[x] Load pmd, pmx models
--[x] Loading skeleton and skin
--[x] Loading material
--[x] Load vmd skeleton animation
--[x] Load expression deformation target and expression animation
--[ ] ik Support
--[ ] Designing Api and interfacing with babylonjs SceneLoader
--[ ] Release npm packages
--[ ] Writing documentation
+- [x] Load pmd, pmx models
+- [x] Loading skeleton and skin
+- [x] Loading material
+- [x] Load vmd skeleton animation
+- [x] Load expression deformation target and expression animation
+- [ ] ik Support
+- [ ] Designing Api and interfacing with babylonjs SceneLoader
+- [ ] Release npm packages
+- [ ] Writing documentation
 
 ### Planned
 
--[ ] Stroke Shader
--[ ] Cel Shader
--[ ] Physical Support
+- [ ] Stroke Shader
+
+- [ ] Cel Shader
+- [ ] Physical Support
 
