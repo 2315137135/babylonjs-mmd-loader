@@ -35,7 +35,10 @@ declare module "mmd-parser" {
     }
     type MMDMorphData = {
         elementCount: number,
-        elements: { index: number, position: Vec3 }[],
+        elements: {
+            ratio: number;
+            index: number, position: Vec3
+        }[],
         englishName: string,
         name: string,
         panel: number

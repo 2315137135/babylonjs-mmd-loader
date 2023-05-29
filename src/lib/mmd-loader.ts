@@ -1,4 +1,11 @@
-import {MMDAnimationData, MMDModelData, MMDMorphAnimationData, MMDMotionAnimationData, MMDParser} from "mmd-parser";
+import {
+    MMDAnimationData,
+    MMDModelData,
+    MMDMorphAnimationData,
+    MMDMorphData,
+    MMDMotionAnimationData,
+    MMDParser
+} from "mmd-parser";
 import {
     Animation,
     AnimationGroup,
@@ -45,9 +52,6 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     mmdMesh.material = mat
     mmdMesh.metadata = mmdData.metadata
 
-    mmdMesh.onMeshReadyObservable.add(e => {
-        scene.addMesh(mmdMesh)
-    })
     return mmdMesh
 }
 
@@ -55,21 +59,21 @@ export function parseMaterial(pmd: MMDModelData, scene: Scene, rootUrl: string, 
     let multiMat = new MultiMaterial("")
     pmd.materials.forEach((e, index) => {
         let mat = new StandardMaterial(`${e.name ?? index}`, scene)
+        mat.sideOrientation = 0
+        mat.backFaceCulling = false
+
         mat.ambientColor = Color3.FromArray(e.ambient)
         mat.diffuseColor = Color3.FromArray(e.diffuse)
         mat.alpha = e.diffuse[3] ?? 1
         mat.specularColor = Color3.FromArray(e.specular)
         //https://computergraphics.stackexchange.com/questions/1515/what-is-the-accepted-method-of-converting-shininess-to-roughness-and-vice-versa
-        mat.roughness = Math.pow(0.25 * e.shininess, 0.2)
+        mat.roughness = 0.25 * Math.pow(e.shininess, 0.2)
         if (e.textureIndex && e.textureIndex > -1) {
             mat.diffuseTexture = textures[e.textureIndex]
-        }
-        if (e.fileName) {
-            let fineUrl = `${rootUrl}${e.fileName}`
+        } else if (e.fileName) {
+            let fineUrl = `${rootUrl}/${e.fileName}`
             mat.diffuseTexture = new Texture(fineUrl, scene)
         }
-        mat.sideOrientation = 0
-        mat.backFaceCulling = false
         multiMat.subMaterials.push(mat)
     })
     return multiMat
@@ -85,26 +89,59 @@ function parseSubMesh(pmd: MMDModelData, mmdMesh: Mesh) {
     })
 }
 
-function parseMorph(pmd: MMDModelData, mmdMesh: Mesh) {
+function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
+    console.log(data)
     let scene = mmdMesh._scene
     let morphTargetManager = mmdMesh.morphTargetManager = mmdMesh.morphTargetManager ?? new MorphTargetManager(scene)
-    pmd.morphs.forEach(morphData => {
+
+    function updatePosition(positions: number [], morphData: MMDMorphData, scale: number) {
+        for (let i = 0; i < morphData.elements.length; i++) {
+            let element = morphData.elements[i]
+            let index = element.index
+            if (data.metadata.format === 'pmd') {
+                index = data.morphs[0].elements[element.index].index;
+            }
+            positions[index * 3 + 0] += element.position[0]
+            positions[index * 3 + 1] += element.position[1]
+            positions[index * 3 + 2] += element.position[2]
+        }
+    }
+
+    data.morphs.forEach((morphData, index) => {
         let positions = [...mmdMesh.getVerticesData("position") ?? []]
         if (positions.length <= 0) throw Error("The mesh has no position vertex data")
 
-        let morphTarget = new MorphTarget(morphData.name, 0, scene)
-        if (morphData.type === 1) {
-            for (let i = 0; i < morphData.elements.length; i++) {
-                let element = morphData.elements[i]
-                positions[element.index * 3 + 0] += element.position[0]
-                positions[element.index * 3 + 1] += element.position[1]
-                positions[element.index * 3 + 2] += element.position[2]
-            }
+        if (data.metadata.format === 'pmd') {
+            if (index != 0) updatePosition(positions, morphData, 1)
+            let morphTarget = new MorphTarget(morphData.name, 0, scene)
             morphTarget.setPositions(positions)
-        } else if (morphData.type === 2) {
-            // 不知道干嘛的, 预留
+            morphTargetManager.addTarget(morphTarget)
+        } else {
+            if (morphData.type === 0 && false) { // group
+                for (let j = 0; j < morphData.elementCount; j++) {
+                    const morph2 = data.morphs[morphData.elements[j].index];
+                    const ratio = morphData.elements[j].ratio;
+                    if (morph2.type === 1) {
+                        updatePosition(positions, morph2, ratio);
+                    } else {
+
+                    }
+                }
+
+                let morphTarget = new MorphTarget(morphData.name, 0, scene)
+                morphTarget.setPositions(positions)
+                morphTargetManager.addTarget(morphTarget)
+            } else if (morphData.type === 1) {
+                updatePosition(positions, morphData, 1)
+                let morphTarget = new MorphTarget(morphData.name, 0, scene)
+                morphTarget.setPositions(positions)
+                morphTargetManager.addTarget(morphTarget)
+            } else if (morphData.type === 2) {
+                // 不知道干嘛的, 预留
+            }
         }
-        morphTargetManager.addTarget(morphTarget)
+
+
     })
 
 }
@@ -145,11 +182,10 @@ export function parseMesh(pmd: MMDModelData, scene: Scene) {
     vertexData.uvs = uvs
     vertexData.matricesWeights = skinWeights
     vertexData.matricesIndices = skinIndices
-    vertexData.applyToMesh(mmdMesh, true)
+    vertexData.applyToMesh(mmdMesh, false)
     parseMorph(pmd, mmdMesh)
     parseSubMesh(pmd, mmdMesh)
-    scene.removeMesh(mmdMesh)
-    mmdMesh.onMeshReadyObservable.addOnce(e => scene.addMesh(e))
+
     return mmdMesh
 }
 
