@@ -22,8 +22,8 @@ async function createScene(scene: Scene) {
 
   //https://www.aplaybox.com/details/model/tNkGgxoWN4Ql
   // let mesh = await ImportMMDMeshAsync("/pmx/yyb", "/yyb.pmx", scene)
-  // let mesh = await ImportMMDMeshAsync("/mmd/", "/miku_v2.pmd", scene)
-  let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
+  let mesh = await ImportMMDMeshAsync("/mmd/", "/miku_v2.pmd", scene)
+  // let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
   await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh)
 
 }

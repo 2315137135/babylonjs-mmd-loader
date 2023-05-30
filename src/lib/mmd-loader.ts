@@ -28,6 +28,7 @@ import {
     Vector3,
     VertexData
 } from "@babylonjs/core";
+import {Debug} from "@babylonjs/core/Legacy/legacy";
 
 const parser = new MMDParser.Parser()
 
@@ -46,8 +47,8 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     let textures = parseTextures(mmdData, scene, rootUrl)
     let mmdMesh = await parseMesh(mmdData, scene)
     let mat = parseMaterial(mmdData, scene, rootUrl, textures)
-    let skeleton = parsSkeleton(mmdData, scene)
-
+    let skeleton = parseSkeleton(mmdData, scene)
+    new Debug.SkeletonViewer(skeleton, mmdMesh, scene, true, 1, {displayMode: 2})
     mmdMesh.skeleton = skeleton
     mmdMesh.material = mat
     mmdMesh.metadata = mmdData.metadata
@@ -110,12 +111,12 @@ function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
     data.morphs.forEach((morphData, index) => {
         let positions = [...mmdMesh.getVerticesData("position") ?? []]
         if (positions.length <= 0) throw Error("The mesh has no position vertex data")
-
+        let hasUpdate = false
         if (data.metadata.format === 'pmd') {
-            if (index != 0) updatePosition(positions, morphData, 1)
-            let morphTarget = new MorphTarget(morphData.name, 0, scene)
-            morphTarget.setPositions(positions)
-            morphTargetManager.addTarget(morphTarget)
+            if (index != 0) {
+                updatePosition(positions, morphData, 1)
+                hasUpdate = true
+            }
         } else {
             if (morphData.type === 0 && false) { // group
                 for (let j = 0; j < morphData.elementCount; j++) {
@@ -123,6 +124,7 @@ function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
                     const ratio = morphData.elements[j].ratio;
                     if (morph2.type === 1) {
                         updatePosition(positions, morph2, ratio);
+                        hasUpdate = true
                     } else {
 
                     }
@@ -133,17 +135,18 @@ function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
                 morphTargetManager.addTarget(morphTarget)
             } else if (morphData.type === 1) {
                 updatePosition(positions, morphData, 1)
-                let morphTarget = new MorphTarget(morphData.name, 0, scene)
-                morphTarget.setPositions(positions)
-                morphTargetManager.addTarget(morphTarget)
+                hasUpdate = true
             } else if (morphData.type === 2) {
                 // 不知道干嘛的, 预留
             }
         }
-
-
+        if (hasUpdate) {
+            let morphTarget = new MorphTarget(morphData.name, 0, scene)
+            morphTarget.setPositions(positions)
+            morphTargetManager.addTarget(morphTarget)
+        }
     })
-
+    console.log(morphTargetManager.numTargets)
 }
 
 export function parseMesh(pmd: MMDModelData, scene: Scene) {
@@ -189,7 +192,7 @@ export function parseMesh(pmd: MMDModelData, scene: Scene) {
     return mmdMesh
 }
 
-function parsSkeleton(pmd: MMDModelData, scene: Scene) {
+function parseSkeleton(pmd: MMDModelData, scene: Scene) {
     let skeleton = new Skeleton("sk", scene.getUniqueId().toString(), scene)
     for (let i = 0; i < pmd.bones.length; i++) {
         const boneData = pmd.bones[i];
@@ -197,14 +200,11 @@ function parsSkeleton(pmd: MMDModelData, scene: Scene) {
         if (boneData.parentIndex > -1) {
             parent = skeleton.bones[boneData.parentIndex]
         }
+        let rotation = Quaternion.Identity()
+        let scale = Vector3.One()
         let position = Vector3.FromArray(boneData.position)
-        let m = Matrix.Compose(Vector3.One(), Quaternion.Identity(), position.subtract(parent?.position || Vector3.Zero()))
+        let m = Matrix.Compose(scale, rotation, position.subtract(parent?.getPosition(Space.BONE) || Vector3.Zero()))
         let bone = new Bone(boneData.name, skeleton, parent, m)
-        // bone.setScale(Vector3.One())
-        // bone.setRotationQuaternion(Quaternion.Identity(), Space.BONE)
-
-        bone.setPosition(position, Space.LOCAL)
-
     }
     skeleton.returnToRest()
     return skeleton
@@ -302,15 +302,15 @@ function parseAnimation(vmd: MMDAnimationData): MMDAnimations {
 function applyAnimationToSkeleton(mesh: Mesh, {boneAnimations, morphAnimations}: MMDAnimations,) {
     let {skeleton, morphTargetManager} = mesh
     let animationGroup = new AnimationGroup(mesh.name + "_mmd", mesh.getScene())
-
     if (skeleton) {
         for (let i = 0; i < boneAnimations.length; i++) {
             const boneAnimation = boneAnimations[i];
             let boneIndex = skeleton.getBoneIndexByName(boneAnimation.boneName)
             let bone = skeleton.bones[boneIndex]
             if (!bone) continue;
-            boneAnimation.positionAnimation.getKeys().map(e => (e.value as Vector3).addInPlace(bone.position))
-            animationGroup.addTargetedAnimation(boneAnimation.positionAnimation, bone)
+            let positionAnime = boneAnimation.positionAnimation.clone()
+            positionAnime.getKeys().map(e => (e.value as Vector3).addInPlace(bone.position))
+            animationGroup.addTargetedAnimation(positionAnime, bone)
             animationGroup.addTargetedAnimation(boneAnimation.rotationAnimation, bone)
         }
     }
@@ -322,11 +322,11 @@ function applyAnimationToSkeleton(mesh: Mesh, {boneAnimations, morphAnimations}:
         for (let i = 0; i < morphAnimations.length; i++) {
             let morphAnime = morphAnimations[i]
             let name = morphAnime.morphName
-            let animation = morphAnime.morphAnimation
             let morphTarget = morphTargets.find(e => e.name === name)
             if (!morphTarget) continue;
+            let animation = morphAnime.morphAnimation
             animationGroup.addTargetedAnimation(animation, morphTarget)
         }
     }
-    animationGroup.play(true)
+    // animationGroup.play(true)
 }
