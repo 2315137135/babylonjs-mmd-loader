@@ -29,6 +29,7 @@ import {
     VertexData
 } from "@babylonjs/core";
 import {Debug} from "@babylonjs/core/Legacy/legacy";
+import { parseIKs } from './parser.ts';
 
 const parser = new MMDParser.Parser()
 
@@ -43,7 +44,7 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     } else {
         mmdData = parser.parsePmx(rawData)
     }
-    console.log(mmdData)
+    console.log('mmdData', mmdData)
     let textures = parseTextures(mmdData, scene, rootUrl)
     let mmdMesh = await parseMesh(mmdData, scene)
     let mat = parseMaterial(mmdData, scene, rootUrl, textures)
@@ -52,6 +53,8 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     mmdMesh.skeleton = skeleton
     mmdMesh.material = mat
     mmdMesh.metadata = mmdData.metadata
+    const iks = parseIKs(mmdData)
+    console.log('parsedIKs', iks);
 
     return mmdMesh
 }
@@ -102,7 +105,7 @@ function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
             if (data.metadata.format === 'pmd') {
                 index = data.morphs[0].elements[element.index].index;
             }
-            positions[index * 3 + 0] += element.position[0]
+            positions[index * 3] += element.position[0]
             positions[index * 3 + 1] += element.position[1]
             positions[index * 3 + 2] += element.position[2]
         }
