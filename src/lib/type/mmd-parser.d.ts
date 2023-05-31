@@ -51,6 +51,20 @@ declare module "mmd-parser" {
         motions: MMDMotionAnimationData []
     }
 
+    export interface MMDModelIK {
+      target: number;
+      effector: number;
+      linkCount: number;
+      iteration: number;
+      maxAngle: number;
+      links: Array<{
+        index: number;
+        angleLimitation: number;
+        lowerLimitationAngle?: Vec3;
+        upperLimitationAngle?: Vec3;
+      }>
+    }
+
     export interface MMDModelData {
         metadata: Record<string, string | number>
         morphs: MMDMorphData[]
@@ -64,8 +78,10 @@ declare module "mmd-parser" {
             position: Vec3
             tailIndex: number
             type: number
+            ik: MMDModelIK
         }[]
         materials: MMDMaterial[]
+        iks?: MMDModelIK[]
     }
 
     export class Parser {
