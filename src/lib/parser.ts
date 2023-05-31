@@ -55,18 +55,6 @@ export const parseIKs = (data: MMDModelData) => {
           index: ik.links[j].index,
           enabled: true
         };
-        if (ik.links[j].angleLimitation === 1) {
-          // Revert if rotationMin/Max doesn't work well
-          // link.limitation = new Vector3( 1.0, 0.0, 0.0 );
-          const rotationMin = ik.links[j].lowerLimitationAngle;
-          const rotationMax = ik.links[j].upperLimitationAngle;
-          if (rotationMin && rotationMax) {
-            [rotationMin[0], rotationMax[0]] = [-rotationMax[0], -rotationMin[0]];
-            [rotationMin[1], rotationMax[1]] = [-rotationMax[1], -rotationMin[1]];
-            link.rotationMin = new Vector3().fromArray(rotationMin);
-            link.rotationMax = new Vector3().fromArray(rotationMax);
-          }
-        }
         param.links.push(link);
       }
       result.push(param);
