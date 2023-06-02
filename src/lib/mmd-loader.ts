@@ -28,8 +28,8 @@ import {
     Vector3,
     VertexData
 } from "@babylonjs/core";
-import {Debug} from "@babylonjs/core/Legacy/legacy";
-import { parseIKs } from './parser.ts';
+import {parseIKs} from './parser.ts';
+import {CCDIkController} from "./ccd-ik.ts";
 
 const parser = new MMDParser.Parser()
 
@@ -49,13 +49,37 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     let mmdMesh = await parseMesh(mmdData, scene)
     let mat = parseMaterial(mmdData, scene, rootUrl, textures)
     let skeleton = parseSkeleton(mmdData, scene)
-    new Debug.SkeletonViewer(skeleton, mmdMesh, scene, true, 1, {displayMode: 2})
     mmdMesh.skeleton = skeleton
     mmdMesh.material = mat
     mmdMesh.metadata = mmdData.metadata
-    const iks = parseIKs(mmdData)
-    console.log('parsedIKs', iks);
 
+    let iks = parseIKs(mmdData)
+    // iks = [iks[0]]
+    console.log('parsedIKs', iks);
+    iks.forEach(e => {
+        // let option: CCDIkOption = {
+        //     effectIndex: e.effector,
+        //     maxAngle: e.maxAngle,
+        //     iteration: e.iteration,
+        //     ikBoneIndex: e.target,
+        //     links: []
+        // }
+        // e.links.forEach(e => {
+        //     option.links.push({boneIndex: e.index, limitation: e.limitation})
+        // })
+        // new CCDIkController("CCD ik", mmdMesh, option)
+
+
+        let ik = CCDIkController.CreateFromEffectBoneIndex(mmdMesh, e.effector, e.links.length, {
+            iteration: e.iteration,
+            ikBoneIndex: e.target,
+            maxAngle: e.maxAngle,
+        })
+        ik.debugEnable = true
+    })
+    scene.onBeforeRenderObservable.addOnce(eventData => {
+        skeleton.returnToRest()
+    })
     return mmdMesh
 }
 
@@ -331,5 +355,5 @@ function applyAnimationToSkeleton(mesh: Mesh, {boneAnimations, morphAnimations}:
             animationGroup.addTargetedAnimation(animation, morphTarget)
         }
     }
-    // animationGroup.play(true)
+    animationGroup.play(true)
 }

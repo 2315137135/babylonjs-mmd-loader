@@ -26,6 +26,13 @@ async function createScene(scene: Scene) {
   // let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
   await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh)
 
+
+  // new Debug.SkeletonViewer(mesh.skeleton!, mesh, scene, true, 1, {displayMode: 0})
+
+  // let ik = CCDIkController.CreateFromEffectBoneIndex(mesh, 74, 2, {iteration: 10, ikBoneIndex: 90})
+  // let ik2 = CCDIkController.CreateFromEffectBoneIndex(mesh, 42, 2, {iteration: 10, ikBoneIndex: 89})
+
+  // console.log(ik)
 }
 
 onMounted(() => {
