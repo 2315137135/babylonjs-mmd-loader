@@ -4,7 +4,7 @@ import {
     Mesh,
     Nullable,
     Observer,
-    Scalar,
+    Quaternion,
     Space,
     TmpVectors,
     TransformNode,
@@ -90,7 +90,7 @@ export class CCDIkController extends TransformNode {
             if (!currentLinkBone) break
             fineOption.links[i] = {...fineOption.links[i], boneIndex: currentLinkBone.getIndex()}
         }
-        fineOption.links = fineOption.links.reverse()
+        // fineOption.links = fineOption.links.reverse()
         return new CCDIkController("CCDIkController", mesh, fineOption)
     }
 
@@ -127,15 +127,20 @@ export class CCDIkController extends TransformNode {
 
                 let targetV = target.subtract(bone.getAbsoluteTransform().getTranslation()).normalize()
                 let effectV = effect.getAbsoluteTransform().getTranslation().subtract(bone.getAbsoluteTransform().getTranslation()).normalize()
+                // @ts-ignore
+                Vector3.TransformNormalToRef(targetV, bone.getRotationMatrix(Space.WORLD, null).invert(), targetV)
+                // @ts-ignore
+                Vector3.TransformNormalToRef(effectV, bone.getRotationMatrix(Space.WORLD, null).invert(), effectV)
 
                 let angle = Vector3.Dot(targetV, effectV)
-
-                angle = Scalar.Clamp(angle, -1, 1)
-
+                if (angle > 1.0) {
+                    angle = 1.0;
+                } else if (angle < -1.0) {
+                    angle = -1.0;
+                }
                 angle = Math.acos(angle) * power
-                power *= 0.9
 
-                if (Math.abs(angle) < 0.001) return;
+                if (Math.abs(angle) < 0.0001) return;
 
                 if (ikOption.maxAngle !== undefined) {
                     if (angle >= ikOption.maxAngle) {
@@ -146,8 +151,21 @@ export class CCDIkController extends TransformNode {
 
                 let axis = Vector3.Cross(targetV, effectV).normalize()
                 let scale = TmpVectors.Vector3[0].copyFrom(bone.scaling)
-                bone.rotate(axis, -angle, Space.WORLD)
+                // bone.rotate(axis, -angle, Space.LOCAL)
+                bone.rotationQuaternion.multiplyInPlace(Quaternion.RotationAxis(axis, -angle))
                 bone.setScale(scale)
+
+                if (link.limitation !== undefined) {
+                    let c = bone.rotationQuaternion.w;
+                    if (c > 1.0) c = 1.0;
+                    const c2 = Math.sqrt(1 - c * c);
+                    bone.rotationQuaternion.set(-link.limitation.x * c2,
+                        link.limitation.y * c2,
+                        link.limitation.z * c2,
+                        c);
+                }
+                bone.computeAbsoluteTransforms()
+
             })
         }
 
