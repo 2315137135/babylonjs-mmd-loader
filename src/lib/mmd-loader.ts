@@ -28,7 +28,7 @@ import {
     Vector3,
     VertexData
 } from "@babylonjs/core";
-import {parseIKs} from './parser.ts';
+import {parseIKs} from './ikParser.ts';
 import {CCDIkController, CCDIkOption} from "./ccd-ik.ts";
 
 const parser = new MMDParser.Parser()
@@ -54,7 +54,6 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     mmdMesh.metadata = mmdData.metadata
 
     let iks = parseIKs(mmdData)
-    // iks = [iks[0]]
     console.log('parsedIKs', iks);
     iks.forEach(e => {
         let option: CCDIkOption = {
@@ -64,28 +63,27 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
             ikBoneIndex: e.target,
             links: []
         }
+
         e.links.forEach(e => {
             option.links.push({boneIndex: e.index, limitation: e.limitation})
         })
         let ik = new CCDIkController("CCD ik", mmdMesh, option)
-
-
-        // let ik = CCDIkController.CreateFromEffectBoneIndex(mmdMesh, e.effector, e.links.length, {
-        //     iteration: e.iteration,
-        //     ikBoneIndex: e.target,
-        //     maxAngle: e.maxAngle,
-        // })
         ik.debugEnable = true
     })
     scene.onBeforeRenderObservable.addOnce(eventData => {
         skeleton.returnToRest()
     })
+
+    if (mmdData.metadata.format === "pmx") {
+    }
+
     return mmdMesh
 }
 
-export function parseMaterial(pmd: MMDModelData, scene: Scene, rootUrl: string, textures: Texture[]) {
+
+export function parseMaterial(mmdData: MMDModelData, scene: Scene, rootUrl: string, textures: Texture[]) {
     let multiMat = new MultiMaterial("")
-    pmd.materials.forEach((e, index) => {
+    mmdData.materials.forEach((e, index) => {
         let mat = new StandardMaterial(`${e.name ?? index}`, scene)
         mat.sideOrientation = 0
         mat.backFaceCulling = false
@@ -232,6 +230,7 @@ function parseSkeleton(pmd: MMDModelData, scene: Scene) {
         let position = Vector3.FromArray(boneData.position)
         let m = Matrix.Compose(scale, rotation, position.subtract(parent?.getPosition(Space.BONE) || Vector3.Zero()))
         let bone = new Bone(boneData.name, skeleton, parent, m)
+
     }
     skeleton.returnToRest()
     return skeleton
@@ -253,7 +252,7 @@ export async function loadVmdAnimationAsync(url: string, mmdMesh: Mesh) {
     let raw = await Tools.LoadFileAsync(url, true)
     let vmd = parser.parseVmd(raw)
     let animations = parseAnimation(vmd)
-    applyAnimationToSkeleton(mmdMesh, animations)
+    return applyAnimationToSkeleton(mmdMesh, animations)
 }
 
 
@@ -357,4 +356,5 @@ function applyAnimationToSkeleton(mesh: Mesh, {boneAnimations, morphAnimations}:
     }
     animationGroup.normalize()
     animationGroup.play(true)
+    return animationGroup
 }

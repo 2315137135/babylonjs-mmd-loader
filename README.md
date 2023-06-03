@@ -30,9 +30,8 @@ Of course the final package will not be associated with vue, it will just be use
 - [ ] Writing documentation
 
 ### Planned
-
+- [ ] bezier interpolation Support
 - [ ] Stroke Shader
-
 - [ ] Cel Shader
 - [ ] Physical Support
 

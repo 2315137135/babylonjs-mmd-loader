@@ -1,10 +1,12 @@
 import {
     Bone,
     GizmoManager,
+    InspectableType,
     Mesh,
     Nullable,
     Observer,
     Quaternion,
+    Scalar,
     Space,
     TmpVectors,
     TransformNode,
@@ -42,24 +44,34 @@ export class CCDIkController extends TransformNode {
         this._targetMesh = skeletonMesh
         this.parent = this._targetMesh
         this.position.copyFrom(skeletonMesh.skeleton!.bones[option.effectIndex].getAbsolutePosition())
-        this.ikEnable = true
+        this.ikEnabled = true
+
+        this.inspectableCustomProperties = this.inspectableCustomProperties ?? []
+        this.inspectableCustomProperties.push({
+
+            label: "ikEnabled",
+            propertyName: "ikEnabled",
+            type: InspectableType.Checkbox
+
+        })
     }
 
-    private _ikEnable = false
 
-    get ikEnable(): boolean {
-        return this._ikEnable;
+    private _ikEnabled = false
+
+    get ikEnabled(): boolean {
+        return this._ikEnabled;
     }
 
-    set ikEnable(value: boolean) {
-        if (value === this._ikEnable) return
+    set ikEnabled(value: boolean) {
+        if (value === this._ikEnabled) return
         if (value) {
-            this._updateHandle = this._scene.onBeforeRenderObservable.add(this.updateIk.bind(this))
+            this._updateHandle = this._scene.onAfterAnimationsObservable.add(this.updateIk.bind(this))
         } else {
             if (this._updateHandle) this._updateHandle._willBeUnregistered = true
             this._updateHandle = null
         }
-        this._ikEnable = value;
+        this._ikEnabled = value;
     }
 
     get debugEnable() {
@@ -101,11 +113,11 @@ export class CCDIkController extends TransformNode {
         return this.CreateFromEffectBone(mesh, effectBone, chainLength, option)
     }
 
+
     updateIk() {
         let ikOption = this.option
         let skeleton = this._targetMesh.skeleton
         if (!skeleton) return;
-
 
         let ikBoneIndex = ikOption.ikBoneIndex ?? -1
         if (ikBoneIndex >= 0 && ikBoneIndex < skeleton.bones.length) {
@@ -120,8 +132,9 @@ export class CCDIkController extends TransformNode {
 
         let effect = skeleton.bones[ikOption.effectIndex]
         let iteration = ikOption.iteration ?? 1
-        let power = 1
         for (let i = 0; i < iteration; i++) {
+            let power = 1
+
             ikOption.links.forEach(link => {
                 let bone = skeleton!.bones[link.boneIndex]
 
@@ -133,13 +146,14 @@ export class CCDIkController extends TransformNode {
                 Vector3.TransformNormalToRef(effectV, bone.getRotationMatrix(Space.WORLD, null).invert(), effectV)
 
                 let angle = Vector3.Dot(targetV, effectV)
-                if (angle > 1.0) {
-                    angle = 1.0;
-                } else if (angle < -1.0) {
-                    angle = -1.0;
-                }
+                angle = Scalar.Clamp(angle, -1, 1)
+                // if (angle > 1.0) {
+                //     angle = 1.0;
+                // } else if (angle < -1.0) {
+                //     angle = -1.0;
+                // }
                 angle = Math.acos(angle) * power
-
+                power *= 0.9
                 if (Math.abs(angle) < 0.0001) return;
 
                 if (ikOption.maxAngle !== undefined) {

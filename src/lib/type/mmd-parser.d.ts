@@ -51,18 +51,37 @@ declare module "mmd-parser" {
         motions: MMDMotionAnimationData []
     }
 
-    export interface MMDModelIK {
-      target: number;
-      effector: number;
-      linkCount: number;
-      iteration: number;
-      maxAngle: number;
-      links: Array<{
-        index: number;
-        angleLimitation: number;
-        lowerLimitationAngle?: Vec3;
-        upperLimitationAngle?: Vec3;
-      }>
+    export interface MMDModelIkDate {
+        target: number;
+        effector: number;
+        linkCount: number;
+        iteration: number;
+        maxAngle: number;
+        links: Array<{
+            index: number;
+            angleLimitation: number;
+            lowerLimitationAngle?: Vec3;
+            upperLimitationAngle?: Vec3;
+        }>
+    }
+
+    type MMDBoneGrantData = {
+        isLocal: boolean,
+        parentIndex: number
+        ratio: number
+        affectRotation: boolean
+        affectPosition: boolean
+    }
+
+    type MMDBoneData = {
+        ikIndex: number
+        name: string
+        parentIndex: number
+        position: Vec3
+        tailIndex: number
+        type: number
+        ik: MMDModelIkDate
+        grant: MMDBoneGrantData
     }
 
     export interface MMDModelData {
@@ -71,17 +90,9 @@ declare module "mmd-parser" {
         vertices: MMDVertex []
         faces: { indices: Vec3 }[]
         textures?: string[]
-        bones: {
-            ikIndex: number
-            name: string
-            parentIndex: number
-            position: Vec3
-            tailIndex: number
-            type: number
-            ik: MMDModelIK
-        }[]
+        bones: MMDBoneData []
         materials: MMDMaterial[]
-        iks?: MMDModelIK[]
+        iks?: MMDModelIkDate[]
     }
 
     export class Parser {

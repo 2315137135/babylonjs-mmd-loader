@@ -1,5 +1,5 @@
-import { MMDModelData } from 'mmd-parser';
-import { Vector3 } from '@babylonjs/core';
+import {MMDModelData} from 'mmd-parser';
+import {Vector3} from '@babylonjs/core';
 
 export interface ParsedIK {
   target: number;
