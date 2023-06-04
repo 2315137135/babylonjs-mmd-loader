@@ -44,7 +44,6 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     } else {
         mmdData = parser.parsePmx(rawData)
     }
-    console.log('mmdData', mmdData)
     let textures = parseTextures(mmdData, scene, rootUrl)
     let mmdMesh = await parseMesh(mmdData, scene)
     let mat = parseMaterial(mmdData, scene, rootUrl, textures)
@@ -54,7 +53,6 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     mmdMesh.metadata = mmdData.metadata
 
     let iks = parseIKs(mmdData)
-    console.log('parsedIKs', iks);
     iks.forEach(e => {
         let option: CCDIkOption = {
             effectIndex: e.effector,
@@ -68,7 +66,7 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
             option.links.push({boneIndex: e.index, limitation: e.limitation})
         })
         let ik = new CCDIkController("CCD ik", mmdMesh, option)
-        ik.debugEnable = true
+        ik.debugEnable = false
     })
     scene.onBeforeRenderObservable.addOnce(eventData => {
         skeleton.returnToRest()
@@ -116,7 +114,6 @@ function parseSubMesh(pmd: MMDModelData, mmdMesh: Mesh) {
 }
 
 function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
-    console.log(data)
     let scene = mmdMesh._scene
     let morphTargetManager = mmdMesh.morphTargetManager = mmdMesh.morphTargetManager ?? new MorphTargetManager(scene)
 
@@ -171,7 +168,6 @@ function parseMorph(data: MMDModelData, mmdMesh: Mesh) {
             morphTargetManager.addTarget(morphTarget)
         }
     })
-    console.log(morphTargetManager.numTargets)
 }
 
 export function parseMesh(pmd: MMDModelData, scene: Scene) {

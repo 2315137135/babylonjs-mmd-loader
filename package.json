@@ -1,16 +1,17 @@
 {
-  "name": "babylonjs-mmd-loader",
-  "private": true,
-  "main": "",
-  "version": "0.0.0",
+  "name": "@wenxin123/babylonjs-mmd-loader",
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": false,
+  "main": "dist/lib/index.es.js",
+  "types": "dist/lib/lib/main.d.ts",
+  "version": "0.1.4",
   "type": "module",
+  "module": "dist/lib/index.es.js",
   "files": [
     "dist/lib"
   ],
-  "exports": {
-    ".": {
-    }
-  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

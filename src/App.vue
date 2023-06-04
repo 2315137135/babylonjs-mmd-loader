@@ -20,10 +20,10 @@ async function createScene(scene: Scene) {
   let camera = new ArcRotateCamera("", -1.57, 1.5, 30, Vector3.Up().scale(15), scene)
   camera.attachControl()
 
-  //https://www.aplaybox.com/details/model/tNkGgxoWN4Ql
+  // https://www.aplaybox.com/details/model/tNkGgxoWN4Ql
   // let mesh = await ImportMMDMeshAsync("/pmx/yyb", "/yyb.pmx", scene)
-  let mesh = await ImportMMDMeshAsync("/mmd/", "/miku_v2.pmd", scene)
-  // let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
+  // let mesh = await ImportMMDMeshAsync("/mmd/", "/miku_v2.pmd", scene)
+  let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
   let animationGroup = await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh)
   animationGroup.goToFrame(500)
 
