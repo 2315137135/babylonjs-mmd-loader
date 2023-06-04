@@ -30,6 +30,7 @@ import {
 } from "@babylonjs/core";
 import {parseIKs} from './ikParser.ts';
 import {CCDIkController, CCDIkOption} from "./ccd-ik.ts";
+import {GrantSolve} from "./grantSolve.ts";
 
 const parser = new MMDParser.Parser()
 
@@ -73,6 +74,7 @@ export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Sc
     })
 
     if (mmdData.metadata.format === "pmx") {
+        new GrantSolve(skeleton, mmdData.bones)
     }
 
     return mmdMesh

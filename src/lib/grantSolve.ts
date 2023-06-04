@@ -1,46 +1,53 @@
-import {Bone, Nullable, Observer} from "@babylonjs/core";
-import {MMDBoneGrantData} from "mmd-parser";
+import {Bone, Quaternion, Skeleton} from "@babylonjs/core";
+import {MMDBoneData} from "mmd-parser";
 
-const _grantResultMap = new Map();
 
 export class GrantSolve {
-    private readonly updateHandle: Nullable<Observer<any>>;
-    private targetBone: Bone;
+    _grantResultMap = new Map()
 
-    constructor(private bone: Bone, private data: MMDBoneGrantData) {
-        this.targetBone = bone.getSkeleton().bones[data.parentIndex]
-        bone.onDisposeObservable.addOnce(eventData => {
-            this.dispose()
+    constructor(private skeleton: Skeleton, private data: MMDBoneData[]) {
+        this.skeleton.getScene().onBeforeRenderObservable.add(e => {
+            this._grantResultMap.clear()
+            for (let i = 0; i < skeleton.bones.length; i++) {
+                this.updateOne(i)
+            }
         })
-        this.updateHandle = bone.getScene().onBeforeRenderObservable.add(this.update.bind(this))
 
-        if (!this.targetBone) {
-            this.dispose()
-        }
     }
 
-    update() {
-        let {isLocal} = this.data
-        if (this.data.affectPosition) {
-            // TODO
+    updateOne(boneIndex: number) {
+        const bones = this.skeleton.bones;
+        const bonesData = this.data
+        const boneData = bonesData[boneIndex];
+        const bone = bones[boneIndex];
+
+        if (this._grantResultMap.has(boneIndex)) return;
+
+        const quaternion = Quaternion.Identity()
+        this._grantResultMap.set(boneIndex, quaternion.copyFrom(bone.rotationQuaternion));
+
+        if (boneData.grant &&
+            !boneData.grant.isLocal && boneData.grant.affectRotation) {
+
+            const parentIndex = boneData.grant.parentIndex;
+            const ratio = boneData.grant.ratio;
+
+            if (!this._grantResultMap.has(parentIndex)) {
+
+                this.updateOne(parentIndex);
+
+            }
+
+            this.addBoneRotation(bone, this._grantResultMap.get(parentIndex), ratio);
+
         }
-        if (this.data.affectRotation) {
-            this.grantRotation(isLocal)
-        }
+
     }
 
-    grantPosition(isLocal: boolean) {
-        //TODO
-    }
-
-    grantRotation(isLocal: boolean) {
-        if (isLocal) {
-            //TODO
-        } else {
-        }
-    }
-
-    dispose() {
-        if (this.updateHandle) this.updateHandle._willBeUnregistered = true
+    addBoneRotation(bone: Bone, rotation: Quaternion, ratio: number) {
+        let q = Quaternion.Identity()
+        q = Quaternion.Slerp(q, rotation, ratio)
+        q = bone.rotationQuaternion.multiply(q)
+        bone.setRotationQuaternion(q)
     }
 }
