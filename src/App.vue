@@ -6,9 +6,10 @@
 
 <script lang="ts" setup>
 import {onMounted, onUnmounted} from "vue";
-import {ArcRotateCamera, Color3, DirectionalLight, Engine, Scene, Vector3} from "@babylonjs/core";
+import { ArcRotateCamera, Color3, DirectionalLight, Engine, Mesh, Scene, SceneLoader, Vector3 } from '@babylonjs/core';
 import "@babylonjs/inspector"
-import {ImportMMDMeshAsync, loadVmdAnimationAsync} from "./lib/mmd-loader.ts";
+import {loadVmdAnimationAsync} from "./lib/mmd-loader.ts";
+import './lib/main.ts';
 
 async function createScene(scene: Scene) {
   scene.debugLayer.show({embedMode: true}).then()
@@ -23,8 +24,9 @@ async function createScene(scene: Scene) {
   // https://www.aplaybox.com/details/model/tNkGgxoWN4Ql
   // let mesh = await ImportMMDMeshAsync("/pmx/yyb", "/yyb.pmx", scene)
   // let mesh = await ImportMMDMeshAsync("/mmd/", "/miku_v2.pmd", scene)
-  let mesh = await ImportMMDMeshAsync("http://localhost:5173/models/pmx/[MODELS] Lovesick girls ver.1", "[LSG] Jennie (Miku) ver.1.pmx", scene)
-  let animationGroup = await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh)
+  const modelUrl = "/mmd/miku_v2.pmd"
+  const { meshes: [mesh] } = await SceneLoader.ImportMeshAsync("", modelUrl, "", scene)
+  const animationGroup = await loadVmdAnimationAsync("/vmd/wavefile_v2.vmd", mesh as Mesh)
   animationGroup.goToFrame(500)
 
 
