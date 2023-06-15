@@ -33,16 +33,12 @@ import {CCDIkController, CCDIkOption} from "./ccd-ik.ts";
 
 const parser = new MMDParser.Parser()
 
-export async function ImportMMDMeshAsync(rootUrl: string, url: string, scene: Scene) {
-
-    let fineUrl = `${rootUrl}/${url}`
-    let rawData = await Tools.LoadFileAsync(fineUrl, true)
-
+export async function ImportMMDMeshAsync(rootUrl: string, url: string, data: ArrayBuffer | string, scene: Scene): Promise<Mesh> {
     let mmdData
     if (url.includes(".pmd")) {
-        mmdData = parser.parsePmd(rawData)
+        mmdData = parser.parsePmd(data)
     } else {
-        mmdData = parser.parsePmx(rawData)
+        mmdData = parser.parsePmx(data)
     }
     let textures = parseTextures(mmdData, scene, rootUrl)
     let mmdMesh = await parseMesh(mmdData, scene)
